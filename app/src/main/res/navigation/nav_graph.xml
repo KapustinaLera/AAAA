@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.tracker.ui.screens.HomeFragment"
+        android:name="com.example.tracker.HomeFragment"
         android:label="Главная"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/addRecordFragment"
-        android:name="com.example.tracker.ui.screens.AddRecordFragment"
+        android:name="com.example.tracker.AddRecordFragment"
         android:label="Добавить запись"
         tools:layout="@layout/fragment_add_record" />
 
     <fragment
         android:id="@+id/progressFragment"
-        android:name="com.example.tracker.ui.screens.ProgressFragment"
+        android:name="com.example.tracker.ProgressFragment"
         android:label="Прогресс"
         tools:layout="@layout/fragment_progress" />
 
