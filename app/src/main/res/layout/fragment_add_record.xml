@@ -1,20 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Добавление записи"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Добавить запись"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Уровень тяги -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Уровень тяги (1-10)"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/etCravingLevel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Введите число от 1 до 10"
+            android:inputType="number"
+            android:layout_marginTop="4dp" />
+
+        <!-- Количество -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Количество выкуренного/выпитого"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etConsumedAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Введите количество"
+            android:inputType="number"
+            android:layout_marginTop="4dp" />
+
+        <!-- Самочувствие -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Самочувствие (1-10)"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etWellBeing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Введите число от 1 до 10"
+            android:inputType="number"
+            android:layout_marginTop="4dp" />
+
+        <!-- Настроение -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Настроение"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etMood"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Как вы себя чувствуете?"
+            android:layout_marginTop="4dp" />
+
+        <!-- Качество сна -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Качество сна (1-10)"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etSleepQuality"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Введите число от 1 до 10"
+            android:inputType="number"
+            android:layout_marginTop="4dp" />
+
+        <!-- Физическая активность -->
+        <CheckBox
+            android:id="@+id/cbPhysicalActivity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Была физическая активность"
+            android:layout_marginTop="16dp" />
+
+        <!-- Заметки -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Заметки"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ваши заметки"
+            android:minLines="3"
+            android:gravity="top"
+            android:layout_marginTop="4dp" />
+
+        <!-- Кнопка сохранения -->
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Сохранить запись"
+            android:layout_marginTop="24dp"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</ScrollView>
