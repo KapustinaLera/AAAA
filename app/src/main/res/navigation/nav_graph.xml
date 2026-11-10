@@ -15,12 +15,30 @@
         android:id="@+id/addRecordFragment"
         android:name="com.example.tracker.AddRecordFragment"
         android:label="Добавить запись"
-        tools:layout="@layout/fragment_add_record" />
+        tools:layout="@layout/fragment_add_record">
+        <!-- Аргумент для редактирования -->
+        <argument
+            android:name="recordId"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
 
     <fragment
         android:id="@+id/progressFragment"
         android:name="com.example.tracker.ProgressFragment"
         android:label="Прогресс"
         tools:layout="@layout/fragment_progress" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.tracker.SettingsFragment"
+        android:label="Настройки"
+        tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/manageDataFragment"
+        android:name="com.example.tracker.ManageDataFragment"
+        android:label="Управление данными"
+        tools:layout="@layout/fragment_manage_data" />
 
 </navigation>
