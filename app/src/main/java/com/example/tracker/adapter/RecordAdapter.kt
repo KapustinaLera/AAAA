@@ -45,13 +45,16 @@ class RecordAdapter(
         fun bind(record: DayRecord, onEdit: (DayRecord) -> Unit, onDelete: (DayRecord) -> Unit) {
             val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
             tvDate.text = dateFormat.format(Date(record.date))
-            tvMood.text = "Настроение: ${record.mood}"
-            tvCraving.text = "Тяга: ${record.cravingLevel}/10"
-            tvWellBeing.text = "Самочувствие: ${record.wellBeing}/10"
-            tvAmount.text = "Выпито/выкурено: ${record.consumedAmount}"
-            tvSleep.text = "Сон: ${record.sleepQuality}/10"
-            tvActivity.text = if (record.physicalActivity) "Активность: Была" else "Активность: Не было"
-            tvNotes.text = if (record.notes.isNotEmpty()) "Заметка: ${record.notes}" else "Без заметок"
+
+            // Используем getString() из контекста
+            val context = itemView.context
+            tvMood.text = context.getString(R.string.mood_format, record.mood)
+            tvCraving.text = context.getString(R.string.craving_format, record.cravingLevel)
+            tvWellBeing.text = context.getString(R.string.well_being_format, record.wellBeing)
+            tvAmount.text = context.getString(R.string.amount_format, record.consumedAmount)
+            tvSleep.text = context.getString(R.string.sleep_format, record.sleepQuality)
+            tvActivity.text = if (record.physicalActivity) context.getString(R.string.activity_yes) else context.getString(R.string.activity_no)
+            tvNotes.text = if (record.notes.isNotEmpty()) context.getString(R.string.notes_format, record.notes) else context.getString(R.string.no_notes)
 
             btnEdit.setOnClickListener { onEdit(record) }
             btnDelete.setOnClickListener { onDelete(record) }

@@ -1,5 +1,7 @@
 package com.example.tracker
 
+import android.app.TimePickerDialog
+import android.content.Intent // <-- Добавлен импорт для вызова Receiver
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +10,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
+import com.example.tracker.utils.NotificationHelper
 import com.example.tracker.utils.PreferencesManager
 
 class SettingsFragment : Fragment() {
@@ -25,13 +28,17 @@ class SettingsFragment : Fragment() {
 
         val etName = view.findViewById<EditText>(R.id.etSettingsName)
         val etBudget = view.findViewById<EditText>(R.id.etSettingsBudget)
-        val spinnerAddiction = view.findViewById<Spinner>(R.id.spinnerSettingsAddiction) // Наш Spinner
-        val switchNotif = view.findViewById<Switch>(R.id.switchNotifications)
+        val spinnerAddiction = view.findViewById<Spinner>(R.id.spinnerSettingsAddiction)
+        val switchNotif = view.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.switchNotifications)
         val radioGroup = view.findViewById<RadioGroup>(R.id.radioGroupTheme)
         val btnSave = view.findViewById<Button>(R.id.btnSaveSettings)
         val btnManageData = view.findViewById<Button>(R.id.btnManageData)
+        val btnPickTime = view.findViewById<Button>(R.id.btnPickTime)
 
-        // Настраиваем Spinner (Выпадающий список)
+        // Находим новую кнопку теста
+        val btnTestNotification = view.findViewById<Button>(R.id.btnTestNotification)
+
+        // Настраиваем Spinner
         val addictionTypes = arrayOf("Курение", "Алкоголь", "Оба")
         val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, addictionTypes)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -42,7 +49,31 @@ class SettingsFragment : Fragment() {
         etBudget.setText(prefs.getDailyBudget().toString())
         switchNotif.isChecked = prefs.areNotificationsEnabled()
 
-        // Устанавливаем сохраненный тип зависимости в Spinner
+        fun updateTimeText() {
+            val h = prefs.getNotificationHour().toString().padStart(2, '0')
+            val m = prefs.getNotificationMinute().toString().padStart(2, '0')
+            btnPickTime.text = getString(R.string.notification_time, h, m)
+        }
+        updateTimeText()
+
+        btnPickTime.setOnClickListener {
+            val hour = prefs.getNotificationHour()
+            val minute = prefs.getNotificationMinute()
+            TimePickerDialog(requireContext(), { _, h, m ->
+                prefs.setNotificationTime(h, m)
+                updateTimeText()
+                NotificationHelper.scheduleDailyReminder(requireContext())
+            }, hour, minute, true).show()
+        }
+
+        // ОБРАБОТЧИК ТЕСТОВОГО УВЕДОМЛЕНИЯ
+        btnTestNotification.setOnClickListener {
+            // Отправляем сигнал нашему Реминдеру вручную
+            val intent = Intent(requireContext(), ReminderReceiver::class.java)
+            requireContext().sendBroadcast(intent)
+            Toast.makeText(requireContext(), "Уведомление отправлено!", Toast.LENGTH_SHORT).show()
+        }
+
         val savedType = prefs.getAddictionType()
         val typePosition = addictionTypes.indexOf(savedType)
         if (typePosition >= 0) {
@@ -55,16 +86,37 @@ class SettingsFragment : Fragment() {
             else -> radioGroup.check(R.id.radioLight)
         }
 
-        // ОБРАБОТЧИК КНОПКИ "СОХРАНИТЬ"
+        val btnPickQuitDate = view.findViewById<Button>(R.id.btnPickQuitDate)
+
+        fun updateQuitDateText() {
+            val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault())
+            btnPickQuitDate.text = "Дата отказа: " + sdf.format(java.util.Date(prefs.getQuitDate()))
+        }
+        updateQuitDateText()
+
+        btnPickQuitDate.setOnClickListener {
+            val calendar = java.util.Calendar.getInstance()
+            calendar.timeInMillis = prefs.getQuitDate()
+
+            android.app.DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
+                val newDate = java.util.Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth, 0, 0, 0)
+                    set(java.util.Calendar.MILLISECOND, 0)
+                }
+                prefs.setQuitDate(newDate.timeInMillis)
+                updateQuitDateText()
+            }, calendar.get(java.util.Calendar.YEAR), calendar.get(java.util.Calendar.MONTH), calendar.get(java.util.Calendar.DAY_OF_MONTH)).show()
+        }
+
         btnSave.setOnClickListener {
             val name = etName.text.toString().trim()
             val budgetStr = etBudget.text.toString().trim()
-            val selectedAddiction = spinnerAddiction.selectedItem.toString() // Берем из списка
+            val selectedAddiction = spinnerAddiction.selectedItem.toString()
 
             if (name.isNotEmpty() && budgetStr.isNotEmpty()) {
                 prefs.setUserName(name)
                 prefs.setDailyBudget(budgetStr.toFloatOrNull() ?: 300f)
-                prefs.setAddictionType(selectedAddiction) // Сохраняем зависимость
+                prefs.setAddictionType(selectedAddiction)
                 prefs.setNotificationsEnabled(switchNotif.isChecked)
 
                 val selectedTheme = when(radioGroup.checkedRadioButtonId) {
@@ -74,11 +126,14 @@ class SettingsFragment : Fragment() {
                 }
                 prefs.setTheme(selectedTheme)
 
-                // Применяем тему сразу
                 when (selectedTheme) {
                     1 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                     2 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
                     else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                }
+
+                if (switchNotif.isChecked) {
+                    NotificationHelper.scheduleDailyReminder(requireContext())
                 }
 
                 Toast.makeText(requireContext(), "Настройки сохранены!", Toast.LENGTH_SHORT).show()
@@ -87,10 +142,8 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        // ОБРАБОТЧИК КНОПКИ "УПРАВЛЕНИЕ БАЗОЙ"
         btnManageData.setOnClickListener {
-            NavHostFragment.findNavController(this)
-                .navigate(R.id.manageDataFragment)
+            NavHostFragment.findNavController(this).navigate(R.id.manageDataFragment)
         }
     }
 }

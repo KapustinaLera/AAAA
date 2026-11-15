@@ -8,7 +8,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="40dp">
+        android:paddingTop="40dp"
+        android:paddingBottom="40dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -29,7 +30,6 @@
             android:inputType="textPersonName"
             android:layout_marginBottom="16dp"/>
 
-        <!-- НОВОЕ ПОЛЕ: ТИП ЗАВИСИМОСТИ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -55,28 +55,60 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Дата отказа от привычки" />
+        <Button
+            android:id="@+id/btnPickQuitDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Выбрать дату"
+            android:layout_marginBottom="16dp"/>
+
+
+        <!-- БЛОК УВЕДОМЛЕНИЙ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Уведомления"
             android:textStyle="bold"
+            android:textSize="18sp"
             android:layout_marginTop="16dp"/>
-        <Switch
+
+        <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchNotifications"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Ежедневные напоминания"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnPickTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Время: 09:00"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnTestNotification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Прислать тестовое уведомление"
+            android:backgroundTint="#4CAF50"
             android:layout_marginBottom="24dp"/>
 
+        <!-- БЛОК ТЕМЫ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Тема приложения"
             android:textStyle="bold"
+            android:textSize="18sp"
             android:layout_marginTop="16dp"/>
 
         <RadioGroup
             android:id="@+id/radioGroupTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="32dp">
             <RadioButton
                 android:id="@+id/radioLight"
                 android:layout_width="wrap_content"
@@ -94,6 +126,7 @@
                 android:text="Системная" />
         </RadioGroup>
 
+        <!-- КНОПКА СОХРАНИТЬ (теперь в самом низу) -->
         <Button
             android:id="@+id/btnSaveSettings"
             android:layout_width="match_parent"

@@ -29,4 +29,11 @@ class PreferencesManager(context: Context) {
     // Настройки темы (0 - светлая, 1 - темная, 2 - системная)
     fun getTheme(): Int = prefs.getInt("app_theme", 0)
     fun setTheme(theme: Int) = prefs.edit().putInt("app_theme", theme).apply()
+
+    // Время уведомлений
+    fun getNotificationHour(): Int = prefs.getInt("notif_hour", 9)
+    fun getNotificationMinute(): Int = prefs.getInt("notif_minute", 0)
+    fun setNotificationTime(hour: Int, minute: Int) {
+        prefs.edit().putInt("notif_hour", hour).putInt("notif_minute", minute).apply()
+    }
 }

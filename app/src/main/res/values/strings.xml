@@ -1,3 +1,37 @@
 <resources>
     <string name="app_name">Tracker</string>
+    <string name="days_without_habit">Дней без привычки: %1$d</string>
+    <string name="money_saved">Сэкономлено: %1$s руб.</string>
+    <string name="notification_time">Время: %1$s:%2$s</string>
+    <string name="greeting_hello">Привет, %1$s! 👋</string>
+    <string name="greeting_intro">Приятно познакомиться, %1$s!</string>
+    <string name="error_enter_name">Введите имя</string>
+
+    <!-- Строки для адаптера записей -->
+    <string name="mood_format">Настроение: %1$s</string>
+    <string name="craving_format">Тяга: %1$d/10</string>
+    <string name="well_being_format">Самочувствие: %1$d/10</string>
+    <string name="amount_format">Выпито/выкурено: %1$s</string>
+    <string name="sleep_format">Сон: %1$d/10</string>
+    <string name="activity_yes">Активность: Была</string>
+    <string name="activity_no">Активность: Не было</string>
+    <string name="notes_format">Заметка: %1$s</string>
+    <string name="no_notes">Без заметок</string>
+
+    <!-- Строки для уведомлений -->
+    <string name="notification_title">Трекер привычек</string>
+    <string name="notification_text_with_name">%1$s, не сдавайся! Ты держишься уже %2$s.</string>
+    <string name="notification_text_no_name">Не сдавайся! Ты держишься уже %1$s.</string>
+
+    <string name="quote_format">"%1$s"</string>
+    <string name="quote_author_format">- %1$s</string>
+
+    <!-- Правила склонения слова "день" -->
+    <plurals name="days_count">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+
 </resources>
