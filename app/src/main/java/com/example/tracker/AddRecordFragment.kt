@@ -57,10 +57,10 @@ class AddRecordFragment : Fragment() {
             }
         }
 
-        // НАСТРОЙКА ПОЛЗУНКОВ
         sbCravingLevel.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                tvCravingLabel.text = "Уровень тяги: ${progress + 1}/10"
+                // Используем getString, чтобы убрать warning
+                tvCravingLabel.text = getString(R.string.craving_label_format, progress + 1)
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -68,7 +68,7 @@ class AddRecordFragment : Fragment() {
 
         sbWellBeing.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                tvWellBeingLabel.text = "Самочувствие: ${progress + 1}/10"
+                tvWellBeingLabel.text = getString(R.string.well_being_label_format, progress + 1)
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -76,7 +76,7 @@ class AddRecordFragment : Fragment() {
 
         sbSleepQuality.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                tvSleepLabel.text = "Качество сна: ${progress + 1}/10"
+                tvSleepLabel.text = getString(R.string.sleep_label_format, progress + 1)
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -84,7 +84,6 @@ class AddRecordFragment : Fragment() {
 
         recordIdToEdit = arguments?.getInt("recordId", 0) ?: 0
 
-        // ЕСЛИ РЕДАКТИРУЕМ, ЗАПОЛНЯЕМ ПОЛЯ
         if (recordIdToEdit > 0) {
             viewLifecycleOwner.lifecycleScope.launch {
                 val existingRecord = viewModel.getRecordById(recordIdToEdit)
@@ -97,7 +96,6 @@ class AddRecordFragment : Fragment() {
                     cbPhysicalActivity.isChecked = r.physicalActivity
                     etNotes.setText(r.notes)
 
-                    // ИСПРАВЛЕНО: Берем точные числа из базы, а не вытаскиваем цифры из текста
                     if (layoutSmoking.visibility == View.VISIBLE) etSmokedAmount.setText(r.amountSmoked.toString())
                     if (layoutAlcohol.visibility == View.VISIBLE) etAlcoholAmount.setText(r.amountDrunk.toString())
                 }
@@ -105,25 +103,17 @@ class AddRecordFragment : Fragment() {
         }
 
         btnSave.setOnClickListener {
-            // 1. Получаем значения ползунков (от 0 до 9, поэтому +1)
             val cravingLevel = sbCravingLevel.progress + 1
             val wellBeing = sbWellBeing.progress + 1
             val sleepQuality = sbSleepQuality.progress + 1
             val moneySpent = etMoneySpent.text.toString().toDoubleOrNull() ?: 0.0
 
-            // 2. Получаем числа из полей ввода
             val smokedVal = etSmokedAmount.text.toString()
             val alcoholVal = etAlcoholAmount.text.toString()
 
-            val amountSmoked = if (prefs.getAddictionType() == "Курение" || prefs.getAddictionType() == "Оба") {
-                smokedVal.toIntOrNull() ?: 0
-            } else 0
+            val amountSmoked = if (prefs.getAddictionType() == "Курение" || prefs.getAddictionType() == "Оба") smokedVal.toIntOrNull() ?: 0 else 0
+            val amountDrunk = if (prefs.getAddictionType() == "Алкоголь" || prefs.getAddictionType() == "Оба") alcoholVal.toIntOrNull() ?: 0 else 0
 
-            val amountDrunk = if (prefs.getAddictionType() == "Алкоголь" || prefs.getAddictionType() == "Оба") {
-                alcoholVal.toIntOrNull() ?: 0
-            } else 0
-
-            // 3. Собираем красивый текст для отображения
             var consumedText = "Не указано"
             when (prefs.getAddictionType()) {
                 "Курение" -> if (smokedVal.isNotEmpty()) consumedText = "$smokedVal шт."
@@ -136,7 +126,7 @@ class AddRecordFragment : Fragment() {
                 }
             }
 
-            // 4. Создаем ОДНУ запись со всеми полями
+            // Создаем запись БЕЗ photoPath
             val record = DayRecord(
                 id = recordIdToEdit,
                 date = if (recordIdToEdit > 0) System.currentTimeMillis() else Calendar.getInstance().timeInMillis,
@@ -149,11 +139,9 @@ class AddRecordFragment : Fragment() {
                 mood = if (etMood.text.isNotEmpty()) etMood.text.toString() else "Не указано",
                 sleepQuality = sleepQuality,
                 physicalActivity = cbPhysicalActivity.isChecked,
-                notes = etNotes.text.toString(),
-                photoPath = null
+                notes = etNotes.text.toString()
             )
 
-            // 5. Сохраняем и закрываем экран
             if (recordIdToEdit > 0) {
                 viewModel.updateRecord(record)
                 Toast.makeText(requireContext(), "Запись обновлена!", Toast.LENGTH_SHORT).show()

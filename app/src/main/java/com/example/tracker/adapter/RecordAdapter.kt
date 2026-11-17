@@ -51,7 +51,6 @@ class RecordAdapter(
             tvCraving.text = context.getString(R.string.craving_format, record.cravingLevel)
             tvWellBeing.text = context.getString(R.string.well_being_format, record.wellBeing)
 
-            // ВЫВОДИМ КОЛИЧЕСТВО И ПОТРАЧЕННЫЕ ДЕНЬГИ
             val amountText = record.consumedAmount
             val moneyText = if (record.moneySpent > 0) " | Потрачено: ${record.moneySpent} руб." else ""
             tvAmount.text = context.getString(R.string.amount_format, amountText) + moneyText

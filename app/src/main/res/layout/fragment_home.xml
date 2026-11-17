@@ -19,7 +19,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="48dp" />
 
-    <!-- Блок знакомства -->
     <LinearLayout
         android:id="@+id/layoutNameInput"
         android:layout_width="match_parent"
@@ -49,7 +48,6 @@
             android:text="Начать!" />
     </LinearLayout>
 
-    <!-- Блок статистики и цитаты -->
     <LinearLayout
         android:id="@+id/layoutStats"
         android:layout_width="match_parent"
@@ -94,7 +92,6 @@
             android:layout_marginBottom="8dp"
             android:visibility="gone"/>
 
-        <!-- НОВАЯ КНОПКА ОБНОВЛЕНИЯ ЦИТАТЫ -->
         <Button
             android:id="@+id/btnRefreshQuote"
             android:layout_width="wrap_content"
@@ -135,5 +132,24 @@
             android:layout_height="wrap_content"
             android:text="Всего выпито: 0 мл"
             android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/tvAchievement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🏆 Достижение: Пока нет"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFC107"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:id="@+id/tvMilestone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💡 Здоровье: Начало пути"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"/>
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

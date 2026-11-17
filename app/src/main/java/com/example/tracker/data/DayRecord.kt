@@ -10,13 +10,12 @@ data class DayRecord(
     val date: Long,
     val cravingLevel: Int,
     val consumedAmount: String,
-    val amountSmoked: Int = 0,  // сколько выкурено штук
-    val amountDrunk: Int = 0,   // сколько выпито мл
+    val amountSmoked: Int = 0,
+    val amountDrunk: Int = 0,
     val moneySpent: Double = 0.0,
     val wellBeing: Int,
     val mood: String,
     val sleepQuality: Int,
     val physicalActivity: Boolean,
-    val notes: String,
-    val photoPath: String?
+    val notes: String
 )

@@ -34,4 +34,8 @@
         <item quantity="other">%d дня</item>
     </plurals>
 
+    <string name="craving_label_format">Уровень тяги: %1$d/10</string>
+    <string name="well_being_label_format">Самочувствие: %1$d/10</string>
+    <string name="sleep_label_format">Качество сна: %1$d/10</string>
+
 </resources>

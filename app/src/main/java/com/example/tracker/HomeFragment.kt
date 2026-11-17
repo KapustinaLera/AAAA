@@ -15,6 +15,7 @@ import com.example.tracker.viewmodel.QuoteState
 import com.example.tracker.viewmodel.QuoteViewModel
 import com.example.tracker.viewmodel.TrackerViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class HomeFragment : Fragment() {
 
@@ -28,12 +29,15 @@ class HomeFragment : Fragment() {
     private lateinit var etUserName: EditText
     private lateinit var tvDays: TextView
     private lateinit var tvMoney: TextView
-    private lateinit var tvTotalSmoked: TextView // <-- НОВОЕ
-    private lateinit var tvTotalDrunk: TextView  // <-- НОВОЕ
+    private lateinit var tvTotalSmoked: TextView
+    private lateinit var tvTotalDrunk: TextView
+    private lateinit var tvAchievement: TextView
+    private lateinit var tvMilestone: TextView
 
     private var totalSpent = 0.0
-    private var totalSmoked = 0 // <-- НОВОЕ
-    private var totalDrunk = 0  // <-- НОВОЕ
+    private var totalSmoked = 0
+    private var totalDrunk = 0
+    private var currentStreak = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -51,10 +55,10 @@ class HomeFragment : Fragment() {
         etUserName = view.findViewById(R.id.etUserName)
         tvDays = view.findViewById(R.id.tvDaysWithout)
         tvMoney = view.findViewById(R.id.tvMoneySaved)
-
-        // Находим новые элементы
         tvTotalSmoked = view.findViewById(R.id.tvTotalSmoked)
         tvTotalDrunk = view.findViewById(R.id.tvTotalDrunk)
+        tvAchievement = view.findViewById(R.id.tvAchievement)
+        tvMilestone = view.findViewById(R.id.tvMilestone)
 
         val btnSaveName = view.findViewById<Button>(R.id.btnSaveName)
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBarQuote)
@@ -76,7 +80,6 @@ class HomeFragment : Fragment() {
 
         btnRefreshQuote.setOnClickListener { quoteViewModel.fetchQuote() }
 
-        // Подписка на цитаты
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 quoteViewModel.quoteState.collect { state ->
@@ -110,17 +113,43 @@ class HomeFragment : Fragment() {
             }
         }
 
-        // ПОДПИСКА НА ЗАПИСИ
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 trackerViewModel.getAllRecords().collect { records ->
                     totalSpent = records.sumOf { it.moneySpent }
-                    totalSmoked = records.sumOf { it.amountSmoked } // <-- СУММИРУЕМ
-                    totalDrunk = records.sumOf { it.amountDrunk }   // <-- СУММИРУЕМ
+                    totalSmoked = records.sumOf { it.amountSmoked }
+                    totalDrunk = records.sumOf { it.amountDrunk }
+
+                    // ЛОГИКА СЧЕТЧИКА: ищем день последнего срыва
+                    val relapseDays = records
+                        .filter { it.amountSmoked > 0 || it.amountDrunk > 0 }
+                        .map { getStartOfDay(it.date) }
+
+                    val latestRelapseDay = if (relapseDays.isNotEmpty()) {
+                        relapseDays.maxOrNull()!!
+                    } else {
+                        getStartOfDay(prefs.getQuitDate())
+                    }
+
+                    prefs.setLastRelapseDate(latestRelapseDay)
+
+                    val todayStart = getStartOfDay(System.currentTimeMillis())
+                    currentStreak = ((todayStart - latestRelapseDay) / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
+
                     updateUI()
                 }
             }
         }
+    }
+
+    private fun getStartOfDay(timestamp: Long): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = timestamp
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
     }
 
     override fun onResume() {
@@ -139,23 +168,40 @@ class HomeFragment : Fragment() {
             layoutNameInput.visibility = View.GONE
             layoutStats.visibility = View.VISIBLE
 
-            val days = ((System.currentTimeMillis() - prefs.getQuitDate()) / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
-            val expectedBudget = days * prefs.getDailyBudget()
+            val expectedBudget = currentStreak * prefs.getDailyBudget()
             val savings = expectedBudget - totalSpent
 
-            tvDays.text = getString(R.string.days_without_habit, days)
             tvMoney.text = getString(R.string.money_saved, String.format("%.2f", savings))
-
-            // ВЫВОДИМ ЗДОРОВЬЕ
             tvTotalSmoked.text = "Всего выкурено: $totalSmoked шт."
             tvTotalDrunk.text = "Всего выпито: $totalDrunk мл"
 
-            // Красим в зеленый, если 0, и в красный, если есть срывы
             if (totalSmoked == 0) tvTotalSmoked.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
             else tvTotalSmoked.setTextColor(android.graphics.Color.RED)
 
             if (totalDrunk == 0) tvTotalDrunk.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
             else tvTotalDrunk.setTextColor(android.graphics.Color.RED)
+
+            if (currentStreak == 0) {
+                tvDays.text = "Статус: Срыв (счетчик сброшен)"
+                tvDays.setTextColor(android.graphics.Color.RED)
+                tvAchievement.text = "🏆 Достижение: Пока нет"
+                tvMilestone.text = "💡 Здоровье: Вы сбились с пути, начните заново!"
+            } else {
+                tvDays.text = getString(R.string.days_without_habit, currentStreak)
+                tvDays.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
+
+                var achievementText = "🏆 Достижение: Пока нет"
+                if (currentStreak >= 30) achievementText = "🏆 Достижение: Месяц силы! (30 дней)"
+                else if (currentStreak >= 7) achievementText = "🏆 Достижение: Неделя без привычки! (7 дней)"
+                else if (currentStreak >= 1) achievementText = "🏆 Достижение: Первый шаг! (1 день)"
+                tvAchievement.text = achievementText
+
+                var milestoneText = "💡 Здоровье: Начало пути"
+                if (currentStreak >= 30) milestoneText = "💡 Здоровье: Легкие очищаются, функция дыхания улучшается!"
+                else if (currentStreak >= 7) milestoneText = "💡 Здоровье: Вкус и запах становятся острее."
+                else if (currentStreak >= 1) milestoneText = "💡 Здоровье: Уровень кислорода в крови нормализуется."
+                tvMilestone.text = milestoneText
+            }
         }
     }
 }
