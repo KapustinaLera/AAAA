@@ -18,20 +18,21 @@
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
 
+        <!-- УРОВЕНЬ ТЯГИ (ПОЛЗУНОК) -->
         <TextView
+            android:id="@+id/tvCravingLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Уровень тяги (1-10)"
+            android:text="Уровень тяги: 5/10"
             android:textSize="16sp"
             android:layout_marginTop="8dp" />
-
-        <EditText
-            android:id="@+id/etCravingLevel"
+        <SeekBar
+            android:id="@+id/sbCravingLevel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Введите число от 1 до 10"
-            android:inputType="number"
-            android:layout_marginTop="4dp" />
+            android:max="9"
+            android:progress="4"
+            android:layout_marginBottom="16dp" />
 
         <!-- БЛОК ДЛЯ СИГАРЕТ -->
         <LinearLayout
@@ -43,25 +44,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Выкурено сигарет"
+                android:text="Выкурено сигарет (шт.)"
                 android:textSize="16sp"
-                android:layout_marginTop="16dp" />
-            <LinearLayout
+                android:layout_marginTop="8dp" />
+            <EditText
+                android:id="@+id/etSmokedAmount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <EditText
-                    android:id="@+id/etSmokedAmount"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:hint="Кол-во"
-                    android:inputType="number" />
-                <Spinner
-                    android:id="@+id/spinnerSmokingUnit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
+                android:hint="Кол-во штук"
+                android:inputType="number" />
         </LinearLayout>
 
         <!-- БЛОК ДЛЯ АЛКОГОЛЯ -->
@@ -74,72 +65,79 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Выпито алкоголя"
+                android:text="Выпито алкоголя (мл)"
                 android:textSize="16sp"
-                android:layout_marginTop="16dp" />
-            <LinearLayout
+                android:layout_marginTop="8dp" />
+            <EditText
+                android:id="@+id/etAlcoholAmount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <EditText
-                    android:id="@+id/etAlcoholAmount"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:hint="Кол-во"
-                    android:inputType="number" />
-                <Spinner
-                    android:id="@+id/spinnerAlcoholUnit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
+                android:hint="Кол-во мл"
+                android:inputType="number" />
         </LinearLayout>
 
+        <!-- ПОТРАЧЕНО ДЕНЕГ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Самочувствие (1-10)"
+            android:text="Сколько денег реально потратили?"
             android:textSize="16sp"
             android:layout_marginTop="16dp" />
-
         <EditText
-            android:id="@+id/etWellBeing"
+            android:id="@+id/etMoneySpent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Введите число от 1 до 10"
-            android:inputType="number"
-            android:layout_marginTop="4dp" />
+            android:hint="Например, 300 (за пачку) или 0"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="16dp" />
 
+        <!-- САМОЧУВСТВИЕ (ПОЛЗУНОК) -->
+        <TextView
+            android:id="@+id/tvWellBeingLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Самочувствие: 5/10"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
+        <SeekBar
+            android:id="@+id/sbWellBeing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="9"
+            android:progress="4"
+            android:layout_marginBottom="16dp" />
+
+        <!-- НАСТРОЕНИЕ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Настроение"
             android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-
+            android:layout_marginTop="8dp" />
         <EditText
             android:id="@+id/etMood"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Как вы себя чувствуете?"
-            android:inputType="text"
-            android:layout_marginTop="4dp" />
+            android:inputType="text" />
 
+        <!-- КАЧЕСТВО СНА (ПОЛЗУНОК) -->
         <TextView
+            android:id="@+id/tvSleepLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Качество сна (1-10)"
+            android:text="Качество сна: 5/10"
             android:textSize="16sp"
             android:layout_marginTop="16dp" />
-
-        <EditText
-            android:id="@+id/etSleepQuality"
+        <SeekBar
+            android:id="@+id/sbSleepQuality"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Введите число от 1 до 10"
-            android:inputType="number"
-            android:layout_marginTop="4dp" />
+            android:max="9"
+            android:progress="4"
+            android:layout_marginBottom="16dp" />
 
+        <!-- ФИЗАКТИВНОСТЬ -->
         <CheckBox
             android:id="@+id/cbPhysicalActivity"
             android:layout_width="wrap_content"
@@ -147,13 +145,13 @@
             android:text="Была физическая активность"
             android:layout_marginTop="16dp" />
 
+        <!-- ЗАМЕТКИ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Заметки"
             android:textSize="16sp"
             android:layout_marginTop="16dp" />
-
         <EditText
             android:id="@+id/etNotes"
             android:layout_width="match_parent"
@@ -161,8 +159,7 @@
             android:hint="Ваши заметки"
             android:inputType="textMultiLine"
             android:minLines="3"
-            android:gravity="top"
-            android:layout_marginTop="4dp" />
+            android:gravity="top" />
 
         <Button
             android:id="@+id/btnSave"
@@ -171,6 +168,5 @@
             android:text="Сохранить запись"
             android:layout_marginTop="24dp"
             android:textSize="16sp" />
-
     </LinearLayout>
 </ScrollView>

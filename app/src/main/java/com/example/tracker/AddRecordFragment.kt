@@ -29,31 +29,24 @@ class AddRecordFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Находим все элементы
-        val etCravingLevel = view.findViewById<EditText>(R.id.etCravingLevel)
-        val etWellBeing = view.findViewById<EditText>(R.id.etWellBeing)
+        val tvCravingLabel = view.findViewById<TextView>(R.id.tvCravingLabel)
+        val sbCravingLevel = view.findViewById<SeekBar>(R.id.sbCravingLevel)
+        val tvWellBeingLabel = view.findViewById<TextView>(R.id.tvWellBeingLabel)
+        val sbWellBeing = view.findViewById<SeekBar>(R.id.sbWellBeing)
+        val tvSleepLabel = view.findViewById<TextView>(R.id.tvSleepLabel)
+        val sbSleepQuality = view.findViewById<SeekBar>(R.id.sbSleepQuality)
+
+        val etMoneySpent = view.findViewById<EditText>(R.id.etMoneySpent)
         val etMood = view.findViewById<EditText>(R.id.etMood)
-        val etSleepQuality = view.findViewById<EditText>(R.id.etSleepQuality)
         val cbPhysicalActivity = view.findViewById<CheckBox>(R.id.cbPhysicalActivity)
         val etNotes = view.findViewById<EditText>(R.id.etNotes)
         val btnSave = view.findViewById<Button>(R.id.btnSave)
 
-        // Блоки для курения и алкоголя
         val layoutSmoking = view.findViewById<LinearLayout>(R.id.layoutSmoking)
         val layoutAlcohol = view.findViewById<LinearLayout>(R.id.layoutAlcohol)
         val etSmokedAmount = view.findViewById<EditText>(R.id.etSmokedAmount)
         val etAlcoholAmount = view.findViewById<EditText>(R.id.etAlcoholAmount)
-        val spinnerSmokingUnit = view.findViewById<Spinner>(R.id.spinnerSmokingUnit)
-        val spinnerAlcoholUnit = view.findViewById<Spinner>(R.id.spinnerAlcoholUnit)
 
-        // Настраиваем выпадающие списки (единицы измерения)
-        val smokingUnits = arrayOf("шт", "пачка")
-        spinnerSmokingUnit.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, smokingUnits)
-
-        val alcoholUnits = arrayOf("мл", "рюмок", "бокалов", "бутылок")
-        spinnerAlcoholUnit.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, alcoholUnits)
-
-        // Смотрим, какая зависимость в настройках
         val prefs = PreferencesManager(requireContext())
         when (prefs.getAddictionType()) {
             "Курение" -> layoutSmoking.visibility = View.VISIBLE
@@ -64,63 +57,94 @@ class AddRecordFragment : Fragment() {
             }
         }
 
+        // НАСТРОЙКА ПОЛЗУНКОВ
+        sbCravingLevel.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                tvCravingLabel.text = "Уровень тяги: ${progress + 1}/10"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        sbWellBeing.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                tvWellBeingLabel.text = "Самочувствие: ${progress + 1}/10"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        sbSleepQuality.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                tvSleepLabel.text = "Качество сна: ${progress + 1}/10"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
         recordIdToEdit = arguments?.getInt("recordId", 0) ?: 0
 
-        // Если редактируем, заполняем поля (количество просто выводим в текстовом виде)
+        // ЕСЛИ РЕДАКТИРУЕМ, ЗАПОЛНЯЕМ ПОЛЯ
         if (recordIdToEdit > 0) {
             viewLifecycleOwner.lifecycleScope.launch {
                 val existingRecord = viewModel.getRecordById(recordIdToEdit)
                 existingRecord?.let { r ->
-                    etCravingLevel.setText(r.cravingLevel.toString())
-                    etWellBeing.setText(r.wellBeing.toString())
+                    sbCravingLevel.progress = r.cravingLevel - 1
+                    sbWellBeing.progress = r.wellBeing - 1
+                    sbSleepQuality.progress = r.sleepQuality - 1
+                    etMoneySpent.setText(r.moneySpent.toString())
                     etMood.setText(r.mood)
-                    etSleepQuality.setText(r.sleepQuality.toString())
                     cbPhysicalActivity.isChecked = r.physicalActivity
                     etNotes.setText(r.notes)
 
-                    // Для простоты при редактировании пихаем текст в первое попавшееся поле
-                    if (layoutSmoking.visibility == View.VISIBLE) {
-                        etSmokedAmount.setText(r.consumedAmount)
-                    } else if (layoutAlcohol.visibility == View.VISIBLE) {
-                        etAlcoholAmount.setText(r.consumedAmount)
-                    }
+                    // ИСПРАВЛЕНО: Берем точные числа из базы, а не вытаскиваем цифры из текста
+                    if (layoutSmoking.visibility == View.VISIBLE) etSmokedAmount.setText(r.amountSmoked.toString())
+                    if (layoutAlcohol.visibility == View.VISIBLE) etAlcoholAmount.setText(r.amountDrunk.toString())
                 }
             }
         }
 
         btnSave.setOnClickListener {
-            val cravingLevel = etCravingLevel.text.toString().toIntOrNull()
-            val wellBeing = etWellBeing.text.toString().toIntOrNull()
-            val sleepQuality = etSleepQuality.text.toString().toIntOrNull()
+            // 1. Получаем значения ползунков (от 0 до 9, поэтому +1)
+            val cravingLevel = sbCravingLevel.progress + 1
+            val wellBeing = sbWellBeing.progress + 1
+            val sleepQuality = sbSleepQuality.progress + 1
+            val moneySpent = etMoneySpent.text.toString().toDoubleOrNull() ?: 0.0
 
-            if (cravingLevel == null || wellBeing == null || sleepQuality == null) {
-                Toast.makeText(requireContext(), "Заполните все числовые поля (1-10)", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // СОБИРАЕМ СТРОКУ С КОЛИЧЕСТВОМ
-            var consumedText = "Не указано"
+            // 2. Получаем числа из полей ввода
             val smokedVal = etSmokedAmount.text.toString()
             val alcoholVal = etAlcoholAmount.text.toString()
-            val smokedUnit = spinnerSmokingUnit.selectedItem.toString()
-            val alcoholUnit = spinnerAlcoholUnit.selectedItem.toString()
 
+            val amountSmoked = if (prefs.getAddictionType() == "Курение" || prefs.getAddictionType() == "Оба") {
+                smokedVal.toIntOrNull() ?: 0
+            } else 0
+
+            val amountDrunk = if (prefs.getAddictionType() == "Алкоголь" || prefs.getAddictionType() == "Оба") {
+                alcoholVal.toIntOrNull() ?: 0
+            } else 0
+
+            // 3. Собираем красивый текст для отображения
+            var consumedText = "Не указано"
             when (prefs.getAddictionType()) {
-                "Курение" -> if (smokedVal.isNotEmpty()) consumedText = "$smokedVal $smokedUnit"
-                "Алкоголь" -> if (alcoholVal.isNotEmpty()) consumedText = "$alcoholVal $alcoholUnit"
+                "Курение" -> if (smokedVal.isNotEmpty()) consumedText = "$smokedVal шт."
+                "Алкоголь" -> if (alcoholVal.isNotEmpty()) consumedText = "$alcoholVal мл"
                 "Оба" -> {
                     val parts = mutableListOf<String>()
-                    if (smokedVal.isNotEmpty()) parts.add("$smokedVal $smokedUnit сигарет")
-                    if (alcoholVal.isNotEmpty()) parts.add("$alcoholVal $alcoholUnit алкоголя")
+                    if (smokedVal.isNotEmpty()) parts.add("$smokedVal шт. сигарет")
+                    if (alcoholVal.isNotEmpty()) parts.add("$alcoholVal мл алкоголя")
                     if (parts.isNotEmpty()) consumedText = parts.joinToString(", ")
                 }
             }
 
+            // 4. Создаем ОДНУ запись со всеми полями
             val record = DayRecord(
                 id = recordIdToEdit,
                 date = if (recordIdToEdit > 0) System.currentTimeMillis() else Calendar.getInstance().timeInMillis,
                 cravingLevel = cravingLevel,
-                consumedAmount = consumedText, // <-- СОХРАНЯЕМ ТЕКСТОВУЮ СТРОКУ
+                consumedAmount = consumedText,
+                amountSmoked = amountSmoked,
+                amountDrunk = amountDrunk,
+                moneySpent = moneySpent,
                 wellBeing = wellBeing,
                 mood = if (etMood.text.isNotEmpty()) etMood.text.toString() else "Не указано",
                 sleepQuality = sleepQuality,
@@ -129,6 +153,7 @@ class AddRecordFragment : Fragment() {
                 photoPath = null
             )
 
+            // 5. Сохраняем и закрываем экран
             if (recordIdToEdit > 0) {
                 viewModel.updateRecord(record)
                 Toast.makeText(requireContext(), "Запись обновлена!", Toast.LENGTH_SHORT).show()

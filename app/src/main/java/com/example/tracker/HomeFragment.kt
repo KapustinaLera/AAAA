@@ -13,20 +13,27 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.tracker.utils.PreferencesManager
 import com.example.tracker.viewmodel.QuoteState
 import com.example.tracker.viewmodel.QuoteViewModel
+import com.example.tracker.viewmodel.TrackerViewModel
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
     private lateinit var prefs: PreferencesManager
     private val quoteViewModel: QuoteViewModel by viewModels()
+    private val trackerViewModel: TrackerViewModel by viewModels()
 
-    // Ссылки на элементы UI
     private lateinit var tvGreeting: TextView
     private lateinit var layoutNameInput: LinearLayout
     private lateinit var layoutStats: LinearLayout
     private lateinit var etUserName: EditText
     private lateinit var tvDays: TextView
     private lateinit var tvMoney: TextView
+    private lateinit var tvTotalSmoked: TextView // <-- НОВОЕ
+    private lateinit var tvTotalDrunk: TextView  // <-- НОВОЕ
+
+    private var totalSpent = 0.0
+    private var totalSmoked = 0 // <-- НОВОЕ
+    private var totalDrunk = 0  // <-- НОВОЕ
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -38,13 +45,16 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         prefs = PreferencesManager(requireContext())
 
-        // Находим элементы
         tvGreeting = view.findViewById(R.id.tvGreeting)
         layoutNameInput = view.findViewById(R.id.layoutNameInput)
         layoutStats = view.findViewById(R.id.layoutStats)
         etUserName = view.findViewById(R.id.etUserName)
         tvDays = view.findViewById(R.id.tvDaysWithout)
         tvMoney = view.findViewById(R.id.tvMoneySaved)
+
+        // Находим новые элементы
+        tvTotalSmoked = view.findViewById(R.id.tvTotalSmoked)
+        tvTotalDrunk = view.findViewById(R.id.tvTotalDrunk)
 
         val btnSaveName = view.findViewById<Button>(R.id.btnSaveName)
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBarQuote)
@@ -64,9 +74,7 @@ class HomeFragment : Fragment() {
             }
         }
 
-        btnRefreshQuote.setOnClickListener {
-            quoteViewModel.fetchQuote()
-        }
+        btnRefreshQuote.setOnClickListener { quoteViewModel.fetchQuote() }
 
         // Подписка на цитаты
         viewLifecycleOwner.lifecycleScope.launch {
@@ -86,7 +94,6 @@ class HomeFragment : Fragment() {
                             tvQuoteAuthor.visibility = View.VISIBLE
                             tvError.visibility = View.GONE
                             btnRefreshQuote.visibility = View.VISIBLE
-
                             tvQuoteText.text = getString(R.string.quote_format, state.quote.quoteText)
                             tvQuoteAuthor.text = getString(R.string.quote_author_format, state.quote.quoteAuthor)
                         }
@@ -96,21 +103,29 @@ class HomeFragment : Fragment() {
                             tvQuoteAuthor.visibility = View.GONE
                             tvError.visibility = View.VISIBLE
                             btnRefreshQuote.visibility = View.VISIBLE
-
                             tvError.text = state.message
                         }
                     }
                 }
             }
         }
+
+        // ПОДПИСКА НА ЗАПИСИ
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                trackerViewModel.getAllRecords().collect { records ->
+                    totalSpent = records.sumOf { it.moneySpent }
+                    totalSmoked = records.sumOf { it.amountSmoked } // <-- СУММИРУЕМ
+                    totalDrunk = records.sumOf { it.amountDrunk }   // <-- СУММИРУЕМ
+                    updateUI()
+                }
+            }
+        }
     }
 
-    // Обновляем данные при каждом появлении экрана
     override fun onResume() {
         super.onResume()
-        if (::prefs.isInitialized) {
-            updateUI()
-        }
+        if (::prefs.isInitialized) updateUI()
     }
 
     private fun updateUI() {
@@ -125,9 +140,22 @@ class HomeFragment : Fragment() {
             layoutStats.visibility = View.VISIBLE
 
             val days = ((System.currentTimeMillis() - prefs.getQuitDate()) / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
+            val expectedBudget = days * prefs.getDailyBudget()
+            val savings = expectedBudget - totalSpent
 
             tvDays.text = getString(R.string.days_without_habit, days)
-            tvMoney.text = getString(R.string.money_saved, (days * prefs.getDailyBudget()).toString())
+            tvMoney.text = getString(R.string.money_saved, String.format("%.2f", savings))
+
+            // ВЫВОДИМ ЗДОРОВЬЕ
+            tvTotalSmoked.text = "Всего выкурено: $totalSmoked шт."
+            tvTotalDrunk.text = "Всего выпито: $totalDrunk мл"
+
+            // Красим в зеленый, если 0, и в красный, если есть срывы
+            if (totalSmoked == 0) tvTotalSmoked.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
+            else tvTotalSmoked.setTextColor(android.graphics.Color.RED)
+
+            if (totalDrunk == 0) tvTotalDrunk.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
+            else tvTotalDrunk.setTextColor(android.graphics.Color.RED)
         }
     }
 }

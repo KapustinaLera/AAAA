@@ -44,7 +44,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ежедневный бюджет (для расчета экономии)" />
+            android:text="Сколько вы тратили в день до отказа (руб.)" />
         <EditText
             android:id="@+id/etSettingsBudget"
             android:layout_width="match_parent"
@@ -133,13 +133,6 @@
             android:layout_height="wrap_content"
             android:text="Сохранить настройки" />
 
-        <!-- Кнопка для лабы (потом сможешь убрать) -->
-        <Button
-            android:id="@+id/btnManageData"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Управление базой данных (Лаба 2)"
-            android:layout_marginTop="32dp"
-            android:backgroundTint="#FF9800"/>
+
     </LinearLayout>
 </ScrollView>

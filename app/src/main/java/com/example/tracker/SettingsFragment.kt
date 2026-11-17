@@ -1,7 +1,8 @@
 package com.example.tracker
 
+import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.content.Intent // <-- Добавлен импорт для вызова Receiver
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,9 +10,12 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.NavHostFragment
 import com.example.tracker.utils.NotificationHelper
 import com.example.tracker.utils.PreferencesManager
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class SettingsFragment : Fragment() {
     private lateinit var prefs: PreferencesManager
@@ -32,11 +36,9 @@ class SettingsFragment : Fragment() {
         val switchNotif = view.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.switchNotifications)
         val radioGroup = view.findViewById<RadioGroup>(R.id.radioGroupTheme)
         val btnSave = view.findViewById<Button>(R.id.btnSaveSettings)
-        val btnManageData = view.findViewById<Button>(R.id.btnManageData)
         val btnPickTime = view.findViewById<Button>(R.id.btnPickTime)
-
-        // Находим новую кнопку теста
         val btnTestNotification = view.findViewById<Button>(R.id.btnTestNotification)
+        val btnPickQuitDate = view.findViewById<Button>(R.id.btnPickQuitDate)
 
         // Настраиваем Spinner
         val addictionTypes = arrayOf("Курение", "Алкоголь", "Оба")
@@ -66,9 +68,7 @@ class SettingsFragment : Fragment() {
             }, hour, minute, true).show()
         }
 
-        // ОБРАБОТЧИК ТЕСТОВОГО УВЕДОМЛЕНИЯ
         btnTestNotification.setOnClickListener {
-            // Отправляем сигнал нашему Реминдеру вручную
             val intent = Intent(requireContext(), ReminderReceiver::class.java)
             requireContext().sendBroadcast(intent)
             Toast.makeText(requireContext(), "Уведомление отправлено!", Toast.LENGTH_SHORT).show()
@@ -86,26 +86,24 @@ class SettingsFragment : Fragment() {
             else -> radioGroup.check(R.id.radioLight)
         }
 
-        val btnPickQuitDate = view.findViewById<Button>(R.id.btnPickQuitDate)
-
         fun updateQuitDateText() {
-            val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault())
-            btnPickQuitDate.text = "Дата отказа: " + sdf.format(java.util.Date(prefs.getQuitDate()))
+            val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+            btnPickQuitDate.text = "Дата отказа: " + sdf.format(Date(prefs.getQuitDate()))
         }
         updateQuitDateText()
 
         btnPickQuitDate.setOnClickListener {
-            val calendar = java.util.Calendar.getInstance()
+            val calendar = Calendar.getInstance()
             calendar.timeInMillis = prefs.getQuitDate()
 
-            android.app.DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
-                val newDate = java.util.Calendar.getInstance().apply {
+            DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
+                val newDate = Calendar.getInstance().apply {
                     set(year, month, dayOfMonth, 0, 0, 0)
-                    set(java.util.Calendar.MILLISECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
                 }
                 prefs.setQuitDate(newDate.timeInMillis)
                 updateQuitDateText()
-            }, calendar.get(java.util.Calendar.YEAR), calendar.get(java.util.Calendar.MONTH), calendar.get(java.util.Calendar.DAY_OF_MONTH)).show()
+            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
         }
 
         btnSave.setOnClickListener {
@@ -140,10 +138,6 @@ class SettingsFragment : Fragment() {
             } else {
                 Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show()
             }
-        }
-
-        btnManageData.setOnClickListener {
-            NavHostFragment.findNavController(this).navigate(R.id.manageDataFragment)
         }
     }
 }

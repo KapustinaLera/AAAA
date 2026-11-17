@@ -120,5 +120,20 @@
             android:text="Сэкономлено: 0 руб."
             android:textSize="20sp"
             android:textColor="#4CAF50"/>
+
+        <TextView
+            android:id="@+id/tvTotalSmoked"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Всего выкурено: 0 шт."
+            android:textSize="18sp"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/tvTotalDrunk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Всего выпито: 0 мл"
+            android:textSize="18sp"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
