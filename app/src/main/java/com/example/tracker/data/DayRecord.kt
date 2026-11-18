@@ -17,5 +17,6 @@ data class DayRecord(
     val mood: String,
     val sleepQuality: Int,
     val physicalActivity: Boolean,
-    val notes: String
+    val notes: String,
+    val photoPath: String? = null // <-- ВОЗВРАЩАЕМ
 )

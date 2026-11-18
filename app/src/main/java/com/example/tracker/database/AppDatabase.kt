@@ -14,7 +14,7 @@ import com.example.tracker.data.*
         HealthMilestone::class,
         Achievement::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

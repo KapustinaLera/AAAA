@@ -1,10 +1,19 @@
 package com.example.tracker
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -13,12 +22,42 @@ import com.example.tracker.data.DayRecord
 import com.example.tracker.utils.PreferencesManager
 import com.example.tracker.viewmodel.TrackerViewModel
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Calendar
 
 class AddRecordFragment : Fragment() {
 
     private val viewModel: TrackerViewModel by viewModels()
     private var recordIdToEdit: Int = 0
+
+    private var currentPhotoUri: Uri? = null
+    private var currentPhotoPath: String? = null
+
+    // САМЫЙ ПРОСТОЙ И БЕЗОПАСНЫЙ ВЫБОР ФОТО (доступ только к 1 файлу)
+    private val pickImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            currentPhotoUri = uri
+            currentPhotoPath = uri.toString()
+            view?.findViewById<ImageView>(R.id.ivPhoto)?.setImageURI(uri)
+        }
+    }
+
+    // КАМЕРА
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            currentPhotoUri?.let { uri ->
+                currentPhotoPath = uri.toString()
+                view?.findViewById<ImageView>(R.id.ivPhoto)?.setImageURI(uri)
+            }
+        }
+    }
+
+    private val requestCameraPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) openCamera()
+        else Toast.makeText(requireContext(), "Разрешение на камеру отклонено", Toast.LENGTH_SHORT).show()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -42,24 +81,28 @@ class AddRecordFragment : Fragment() {
         val etNotes = view.findViewById<EditText>(R.id.etNotes)
         val btnSave = view.findViewById<Button>(R.id.btnSave)
 
+        val ivPhoto = view.findViewById<ImageView>(R.id.ivPhoto)
+        val btnPickGallery = view.findViewById<Button>(R.id.btnPickGallery)
+        val btnTakePhoto = view.findViewById<Button>(R.id.btnTakePhoto)
+
         val layoutSmoking = view.findViewById<LinearLayout>(R.id.layoutSmoking)
         val layoutAlcohol = view.findViewById<LinearLayout>(R.id.layoutAlcohol)
         val etSmokedAmount = view.findViewById<EditText>(R.id.etSmokedAmount)
         val etAlcoholAmount = view.findViewById<EditText>(R.id.etAlcoholAmount)
 
         val prefs = PreferencesManager(requireContext())
+
         when (prefs.getAddictionType()) {
-            "Курение" -> layoutSmoking.visibility = View.VISIBLE
-            "Алкоголь" -> layoutAlcohol.visibility = View.VISIBLE
+            "Курение" -> layoutSmoking.isVisible = true
+            "Алкоголь" -> layoutAlcohol.isVisible = true
             "Оба" -> {
-                layoutSmoking.visibility = View.VISIBLE
-                layoutAlcohol.visibility = View.VISIBLE
+                layoutSmoking.isVisible = true
+                layoutAlcohol.isVisible = true
             }
         }
 
         sbCravingLevel.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                // Используем getString, чтобы убрать warning
                 tvCravingLabel.text = getString(R.string.craving_label_format, progress + 1)
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -82,6 +125,19 @@ class AddRecordFragment : Fragment() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
+        // КНОПКА ГАЛЕРЕИ (СРАЗУ ОТКРЫВАЕТ СИСТЕМНЫЙ ВЫБОР)
+        btnPickGallery.setOnClickListener {
+            pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+
+        btnTakePhoto.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                openCamera()
+            } else {
+                requestCameraPermission.launch(Manifest.permission.CAMERA)
+            }
+        }
+
         recordIdToEdit = arguments?.getInt("recordId", 0) ?: 0
 
         if (recordIdToEdit > 0) {
@@ -96,8 +152,13 @@ class AddRecordFragment : Fragment() {
                     cbPhysicalActivity.isChecked = r.physicalActivity
                     etNotes.setText(r.notes)
 
-                    if (layoutSmoking.visibility == View.VISIBLE) etSmokedAmount.setText(r.amountSmoked.toString())
-                    if (layoutAlcohol.visibility == View.VISIBLE) etAlcoholAmount.setText(r.amountDrunk.toString())
+                    if (layoutSmoking.isVisible) etSmokedAmount.setText(r.amountSmoked.toString())
+                    if (layoutAlcohol.isVisible) etAlcoholAmount.setText(r.amountDrunk.toString())
+
+                    currentPhotoPath = r.photoPath
+                    if (r.photoPath != null) {
+                        ivPhoto.setImageURI(r.photoPath.toUri())
+                    }
                 }
             }
         }
@@ -126,7 +187,6 @@ class AddRecordFragment : Fragment() {
                 }
             }
 
-            // Создаем запись БЕЗ photoPath
             val record = DayRecord(
                 id = recordIdToEdit,
                 date = if (recordIdToEdit > 0) System.currentTimeMillis() else Calendar.getInstance().timeInMillis,
@@ -139,7 +199,8 @@ class AddRecordFragment : Fragment() {
                 mood = if (etMood.text.isNotEmpty()) etMood.text.toString() else "Не указано",
                 sleepQuality = sleepQuality,
                 physicalActivity = cbPhysicalActivity.isChecked,
-                notes = etNotes.text.toString()
+                notes = etNotes.text.toString(),
+                photoPath = currentPhotoPath
             )
 
             if (recordIdToEdit > 0) {
@@ -152,5 +213,16 @@ class AddRecordFragment : Fragment() {
 
             NavHostFragment.findNavController(this).popBackStack()
         }
+    }
+
+    private fun openCamera() {
+        val photoFile = File(requireContext().cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")
+        val photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            photoFile
+        )
+        currentPhotoUri = photoUri
+        takePicture.launch(photoUri)
     }
 }

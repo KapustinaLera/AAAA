@@ -32,6 +32,7 @@ class SettingsFragment : Fragment() {
 
         val etName = view.findViewById<EditText>(R.id.etSettingsName)
         val etBudget = view.findViewById<EditText>(R.id.etSettingsBudget)
+        val etTargetDays = view.findViewById<EditText>(R.id.etTargetDays) // <-- НОВОЕ ПОЛЕ
         val spinnerAddiction = view.findViewById<Spinner>(R.id.spinnerSettingsAddiction)
         val switchNotif = view.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.switchNotifications)
         val radioGroup = view.findViewById<RadioGroup>(R.id.radioGroupTheme)
@@ -40,7 +41,6 @@ class SettingsFragment : Fragment() {
         val btnTestNotification = view.findViewById<Button>(R.id.btnTestNotification)
         val btnPickQuitDate = view.findViewById<Button>(R.id.btnPickQuitDate)
 
-        // Настраиваем Spinner
         val addictionTypes = arrayOf("Курение", "Алкоголь", "Оба")
         val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, addictionTypes)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -49,6 +49,7 @@ class SettingsFragment : Fragment() {
         // Заполняем текущими значениями
         etName.setText(prefs.getUserName())
         etBudget.setText(prefs.getDailyBudget().toString())
+        etTargetDays.setText(prefs.getTargetDays().toString()) // <-- ЗАГРУЖАЕМ ЦЕЛЬ
         switchNotif.isChecked = prefs.areNotificationsEnabled()
 
         fun updateTimeText() {
@@ -76,9 +77,7 @@ class SettingsFragment : Fragment() {
 
         val savedType = prefs.getAddictionType()
         val typePosition = addictionTypes.indexOf(savedType)
-        if (typePosition >= 0) {
-            spinnerAddiction.setSelection(typePosition)
-        }
+        if (typePosition >= 0) spinnerAddiction.setSelection(typePosition)
 
         when (prefs.getTheme()) {
             1 -> radioGroup.check(R.id.radioDark)
@@ -109,11 +108,13 @@ class SettingsFragment : Fragment() {
         btnSave.setOnClickListener {
             val name = etName.text.toString().trim()
             val budgetStr = etBudget.text.toString().trim()
+            val targetDaysStr = etTargetDays.text.toString().trim()
             val selectedAddiction = spinnerAddiction.selectedItem.toString()
 
-            if (name.isNotEmpty() && budgetStr.isNotEmpty()) {
+            if (name.isNotEmpty() && budgetStr.isNotEmpty() && targetDaysStr.isNotEmpty()) {
                 prefs.setUserName(name)
                 prefs.setDailyBudget(budgetStr.toFloatOrNull() ?: 300f)
+                prefs.setTargetDays(targetDaysStr.toIntOrNull() ?: 30) // <-- СОХРАНЯЕМ ЦЕЛЬ
                 prefs.setAddictionType(selectedAddiction)
                 prefs.setNotificationsEnabled(switchNotif.isChecked)
 
@@ -130,9 +131,7 @@ class SettingsFragment : Fragment() {
                     else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                 }
 
-                if (switchNotif.isChecked) {
-                    NotificationHelper.scheduleDailyReminder(requireContext())
-                }
+                if (switchNotif.isChecked) NotificationHelper.scheduleDailyReminder(requireContext())
 
                 Toast.makeText(requireContext(), "Настройки сохранены!", Toast.LENGTH_SHORT).show()
             } else {

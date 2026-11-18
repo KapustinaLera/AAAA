@@ -7,8 +7,10 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.core.content.ContextCompat
 import kotlin.math.min
 
 class ProgressRingView @JvmOverloads constructor(
@@ -17,7 +19,7 @@ class ProgressRingView @JvmOverloads constructor(
 
     private var progress = 0f
     private var maxProgress = 100f
-    private val strokeWidth = 30f
+    private val strokeWidth = 20f
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rectF = RectF()
@@ -26,15 +28,23 @@ class ProgressRingView @JvmOverloads constructor(
     init {
         backgroundPaint.style = Paint.Style.STROKE
         backgroundPaint.strokeWidth = strokeWidth
-        backgroundPaint.color = Color.parseColor("#E0E0E0")
+        backgroundPaint.color = Color.parseColor("#33808080")
 
         progressPaint.style = Paint.Style.STROKE
         progressPaint.strokeWidth = strokeWidth
         progressPaint.color = Color.parseColor("#4CAF50")
         progressPaint.strokeCap = Paint.Cap.ROUND
 
-        textPaint.color = Color.BLACK
-        textPaint.textSize = 100f
+        val typedValue = TypedValue()
+        context.theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)
+        val textColor = if (typedValue.resourceId != 0) {
+            ContextCompat.getColor(context, typedValue.resourceId)
+        } else {
+            typedValue.data
+        }
+
+        textPaint.color = textColor
+        textPaint.textSize = 70f
         textPaint.textAlign = Paint.Align.CENTER
     }
 
@@ -53,20 +63,30 @@ class ProgressRingView @JvmOverloads constructor(
         val sweepAngle = 360f * (progress / maxProgress)
         canvas.drawArc(rectF, -90f, sweepAngle, false, progressPaint)
 
-        // Рисуем текст внутри
+        // ВСЕГДА РИСУЕМ ТЕКСТ (ДАЖЕ ЕСЛИ 0%)
         val percentText = "${(progress / maxProgress * 100).toInt()}%"
-        canvas.drawText(percentText, centerX, centerY + 35f, textPaint)
+        canvas.drawText(percentText, centerX, centerY + 25f, textPaint)
     }
 
-    fun setProgressWithAnimation(targetProgress: Float, max: Float) {
+    fun setRingColor(color: Int) {
+        progressPaint.color = color
+        invalidate()
+    }
+
+    fun setProgress(progress: Float, max: Float, animate: Boolean = true) {
         this.maxProgress = max
-        val animator = ValueAnimator.ofFloat(0f, targetProgress)
-        animator.duration = 1500 // 1.5 секунды
-        animator.interpolator = DecelerateInterpolator()
-        animator.addUpdateListener { animation ->
-            progress = animation.animatedValue as Float
+        if (animate) {
+            val animator = ValueAnimator.ofFloat(0f, progress)
+            animator.duration = 1500
+            animator.interpolator = DecelerateInterpolator()
+            animator.addUpdateListener { animation ->
+                this.progress = animation.animatedValue as Float
+                invalidate()
+            }
+            animator.start()
+        } else {
+            this.progress = progress
             invalidate()
         }
-        animator.start()
     }
 }

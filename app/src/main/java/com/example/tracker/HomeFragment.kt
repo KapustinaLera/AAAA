@@ -11,6 +11,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.tracker.utils.PreferencesManager
+import com.example.tracker.utils.ProgressRingView
 import com.example.tracker.viewmodel.QuoteState
 import com.example.tracker.viewmodel.QuoteViewModel
 import com.example.tracker.viewmodel.TrackerViewModel
@@ -33,6 +34,7 @@ class HomeFragment : Fragment() {
     private lateinit var tvTotalDrunk: TextView
     private lateinit var tvAchievement: TextView
     private lateinit var tvMilestone: TextView
+    private lateinit var progressRing: ProgressRingView
 
     private var totalSpent = 0.0
     private var totalSmoked = 0
@@ -59,6 +61,7 @@ class HomeFragment : Fragment() {
         tvTotalDrunk = view.findViewById(R.id.tvTotalDrunk)
         tvAchievement = view.findViewById(R.id.tvAchievement)
         tvMilestone = view.findViewById(R.id.tvMilestone)
+        progressRing = view.findViewById(R.id.progressRingHome)
 
         val btnSaveName = view.findViewById<Button>(R.id.btnSaveName)
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBarQuote)
@@ -120,7 +123,6 @@ class HomeFragment : Fragment() {
                     totalSmoked = records.sumOf { it.amountSmoked }
                     totalDrunk = records.sumOf { it.amountDrunk }
 
-                    // ЛОГИКА СЧЕТЧИКА: ищем день последнего срыва
                     val relapseDays = records
                         .filter { it.amountSmoked > 0 || it.amountDrunk > 0 }
                         .map { getStartOfDay(it.date) }
@@ -181,26 +183,35 @@ class HomeFragment : Fragment() {
             if (totalDrunk == 0) tvTotalDrunk.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
             else tvTotalDrunk.setTextColor(android.graphics.Color.RED)
 
+            // Настройка главного кольца (берем цель из настроек)
+            val targetDays = prefs.getTargetDays().toFloat()
+
             if (currentStreak == 0) {
                 tvDays.text = "Статус: Срыв (счетчик сброшен)"
                 tvDays.setTextColor(android.graphics.Color.RED)
                 tvAchievement.text = "🏆 Достижение: Пока нет"
                 tvMilestone.text = "💡 Здоровье: Вы сбились с пути, начните заново!"
+
+                progressRing.setRingColor(android.graphics.Color.RED)
+                progressRing.setProgress(0f, targetDays, animate = true)
             } else {
                 tvDays.text = getString(R.string.days_without_habit, currentStreak)
                 tvDays.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
 
                 var achievementText = "🏆 Достижение: Пока нет"
-                if (currentStreak >= 30) achievementText = "🏆 Достижение: Месяц силы! (30 дней)"
+                if (currentStreak >= targetDays.toInt()) achievementText = "🏆 Достижение: Цель достигнута! (${targetDays.toInt()} дней)"
                 else if (currentStreak >= 7) achievementText = "🏆 Достижение: Неделя без привычки! (7 дней)"
                 else if (currentStreak >= 1) achievementText = "🏆 Достижение: Первый шаг! (1 день)"
                 tvAchievement.text = achievementText
 
                 var milestoneText = "💡 Здоровье: Начало пути"
-                if (currentStreak >= 30) milestoneText = "💡 Здоровье: Легкие очищаются, функция дыхания улучшается!"
+                if (currentStreak >= targetDays.toInt()) milestoneText = "💡 Здоровье: Вы полностью очистились! Так держать!"
                 else if (currentStreak >= 7) milestoneText = "💡 Здоровье: Вкус и запах становятся острее."
                 else if (currentStreak >= 1) milestoneText = "💡 Здоровье: Уровень кислорода в крови нормализуется."
                 tvMilestone.text = milestoneText
+
+                progressRing.setRingColor(android.graphics.Color.parseColor("#4CAF50"))
+                progressRing.setProgress(currentStreak.toFloat().coerceAtMost(targetDays), targetDays, animate = true)
             }
         }
     }

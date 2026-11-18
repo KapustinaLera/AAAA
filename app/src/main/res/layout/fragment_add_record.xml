@@ -161,6 +161,37 @@
             android:minLines="3"
             android:gravity="top" />
 
+        <ImageView
+            android:id="@+id/ivPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:layout_marginTop="16dp"
+            android:background="#EEEEEE"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnPickGallery"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Галерея" />
+
+            <Button
+                android:id="@+id/btnTakePhoto"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Камера"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"

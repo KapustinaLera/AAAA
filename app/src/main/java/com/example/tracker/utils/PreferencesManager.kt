@@ -30,7 +30,10 @@ class PreferencesManager(context: Context) {
         prefs.edit().putInt("notif_hour", hour).putInt("notif_minute", minute).apply()
     }
 
-    // НОВОЕ: Дата последнего срыва
     fun getLastRelapseDate(): Long = prefs.getLong("last_relapse_date", getQuitDate())
     fun setLastRelapseDate(date: Long) = prefs.edit().putLong("last_relapse_date", date).apply()
+
+    // НОВОЕ: Целевое количество дней
+    fun getTargetDays(): Int = prefs.getInt("target_days", 30)
+    fun setTargetDays(days: Int) = prefs.edit().putInt("target_days", days).apply()
 }
